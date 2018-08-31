@@ -18,7 +18,8 @@ new Vue({  // eslint-disable-line
       value9: '',
       value10: new Date(),
       value11: new Date(),
-      value12: ''
+      value12: '',
+      value13: ''
     }
   },
   methods: {
@@ -50,7 +51,8 @@ new Vue({  // eslint-disable-line
       'range': '<date-picker v-model="value2" range ></date-picker>',
       'month': '<date-picker v-model="value10" lang="en" type="month" format="YYYY-MM"></date-picker>',
       'year': '<date-picker v-model="value11" lang="en" type="year" format="YYYY"></date-picker>',
-      'time': '<date-picker v-model="value12" lang="en" type="time" format="HH:mm:ss" placeholder="Select Time"></date-picker>'
+      'time': '<date-picker v-model="value12" lang="en" type="time" format="HH:mm:ss" placeholder="Select Time"></date-picker>',
+      'week': '<date-picker v-model="value13" lang="en" type="week" format="YYYY-MM-DD" :not-after="new Date()"></date-picker>'
     }
     const example2 = {
       'datetime': `

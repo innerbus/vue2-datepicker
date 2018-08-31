@@ -100,6 +100,11 @@ export default {
         } else if (endTime && cellTime >= curTime) {
           classes.push('inrange')
         }
+      } else {
+        // Week panel
+        if (startTime && endTime && startTime <= cellTime && cellTime <= endTime) {
+          classes.push('actived')
+        }
       }
       return classes
     },

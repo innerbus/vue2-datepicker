@@ -6,7 +6,7 @@
         class="mx-icon-last-year"
         @click="handleIconYear(-1)">&laquo;</a>
       <a
-        v-show="panel === 'DATE'"
+        v-show="panel === 'DATE' || panel === 'WEEK'"
         class="mx-icon-last-month"
         @click="handleIconMonth(-1)">&lsaquo;</a>
       <a
@@ -14,15 +14,15 @@
         class="mx-icon-next-year"
         @click="handleIconYear(1)">&raquo;</a>
       <a
-        v-show="panel === 'DATE'"
+        v-show="panel === 'DATE' || panel === 'WEEK'"
         class="mx-icon-next-month"
         @click="handleIconMonth(1)">&rsaquo;</a>
       <a
-        v-show="panel === 'DATE'"
+        v-show="panel === 'DATE' || panel === 'WEEK'"
         class="mx-current-month"
         @click="handleBtnMonth">{{months[calendarMonth]}}</a>
       <a
-        v-show="panel === 'DATE' || panel === 'MONTH'"
+        v-show="panel === 'DATE' || panel === 'WEEK' || panel === 'MONTH'"
         class="mx-current-year"
         @click="handleBtnYear">{{calendarYear}}</a>
       <a
@@ -35,7 +35,7 @@
     </div>
     <div class="mx-calendar-content">
       <panel-date
-        v-show="panel === 'DATE'"
+        v-show="panel === 'DATE' || panel === 'WEEK'"
         :value="value"
         :date-format="dateFormat"
         :calendar-month="calendarMonth"
@@ -209,6 +209,8 @@ export default {
         this.panel = 'YEAR'
       } else if (type === 'time') {
         this.panel = 'TIME'
+      } else if (type === 'week') {
+        this.panel = 'WEEK'
       } else {
         this.panel = 'DATE'
       }
@@ -216,7 +218,11 @@ export default {
     },
     // 根据value更新日历
     updateNow (value) {
-      this.now = value ? new Date(value) : new Date()
+      if (this.type === 'week') {
+        this.now = this.startAt ? this.startAt : new Date()
+      } else {
+        this.now = value ? new Date(value) : new Date()
+      }
     },
     isDisabledTime (date, startAt, endAt) {
       const time = new Date(date).getTime()
@@ -230,12 +236,26 @@ export default {
     },
     isDisabledDate (date, startAt, endAt) {
       const time = new Date(date).getTime()
-      const notBefore = this.notBefore && (time < new Date(this.notBefore).setHours(0, 0, 0, 0))
-      const notAfter = this.notAfter && (time > new Date(this.notAfter).setHours(0, 0, 0, 0))
-      startAt = startAt === undefined ? this.startAt : startAt
-      startAt = startAt && (time < new Date(startAt).setHours(0, 0, 0, 0))
-      endAt = endAt === undefined ? this.endAt : endAt
-      endAt = endAt && (time > new Date(endAt).setHours(0, 0, 0, 0))
+      let notBefore = this.notBefore && (time < new Date(this.notBefore).setHours(0, 0, 0, 0))
+      let notAfter = this.notAfter && (time > new Date(this.notAfter).setHours(0, 0, 0, 0))
+      if (this.type === 'week') {
+        // If type is week, need to add just notBefore & notAfter out of the week range
+        if (this.notBefore) {
+          notBefore = this.getWeekStartDate(this.notBefore)
+          notBefore.setDate(notBefore.getDate())
+          notBefore = time < notBefore.getTime()
+        }
+        if (this.notAfter) {
+          notAfter = this.getWeekStartDate(this.notAfter)
+          notAfter.setDate(notAfter.getDate() + 6)
+          notAfter = time > notAfter.getTime()
+        }
+      } else {
+        startAt = startAt === undefined ? this.startAt : startAt
+        startAt = startAt && (time < new Date(startAt).setHours(0, 0, 0, 0))
+        endAt = endAt === undefined ? this.endAt : endAt
+        endAt = endAt && (time > new Date(endAt).setHours(0, 0, 0, 0))
+      }
       let disabledDays = false
       if (Array.isArray(this.disabledDays)) {
         disabledDays = this.disabledDays.some(v => new Date(v).setHours(0, 0, 0, 0) === time)
@@ -274,8 +294,22 @@ export default {
         this.$emit('select-time', time)
         this.panel = 'TIME'
         return
+      } else if (this.type === 'week') {
+        const startDate = this.getWeekStartDate(date)
+        const endDate = new Date(date)
+        endDate.setDate(startDate.getDate() + 6)
+
+        this.$emit('select-week', [startDate, endDate])
+        return
       }
       this.$emit('select-date', date)
+    },
+    getWeekStartDate (date) {
+      const startDate = new Date(date)
+      // First day of the week: JS: 0-6 (Sun - Sat), DatePicker: 1-7 (Mon-Sun)
+      startDate.setHours(0, 0, 0, 0)
+      startDate.setDate(startDate.getDate() - startDate.getDay() + (this.firstDayOfWeek < 7 ? this.firstDayOfWeek : this.firstDayOfWeek - 7))
+      return startDate
     },
     selectYear (year) {
       this.changeCalendarYear(year)
