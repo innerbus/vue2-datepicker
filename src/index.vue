@@ -3,7 +3,8 @@
     class="mx-datepicker"
     :class="{
       'mx-datepicker-range': range,
-      'disabled': disabled
+      'disabled': disabled,
+      'active': popupVisible
     }"
     :style="{
       'width': computedWidth
