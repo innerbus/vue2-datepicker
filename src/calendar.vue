@@ -63,7 +63,9 @@
         :time-picker-options="timePickerOptions"
         :value="value"
         :disabled-time="isDisabledTime"
-        @select="selectTime" />
+        :time-type="timeType"
+        @select="selectTime"
+        @pick="pickTime" />
     </div>
   </div>
 </template>
@@ -96,7 +98,7 @@ export default {
     },
     type: {
       type: String,
-      default: 'date'
+      default: 'date' // ['date', 'datetime'] zendy added 'month', 'year', mxie added "time"
     },
     dateFormat: {
       type: String,
@@ -144,7 +146,7 @@ export default {
     const calendarMonth = now.getMonth()
     const firstYear = Math.floor(calendarYear / 10) * 10
     return {
-      panel: 'DATE',
+      panel: 'NONE',
       dates: [],
       calendarMonth,
       calendarYear,
@@ -162,6 +164,11 @@ export default {
         this.calendarMonth = now.getMonth()
       }
     },
+    timeType () {
+      const h = /h+/.test(this.$parent.format) ? '12' : '24'
+      const a = /A/.test(this.$parent.format) ? 'A' : 'a'
+      return [h, a]
+    },
     timeHeader () {
       if (this.type === 'time') {
         return this.$parent.format
@@ -173,6 +180,12 @@ export default {
     },
     months () {
       return this.t('months')
+    },
+    notBeforeTime () {
+      return this.getCriticalTime(this.notBefore)
+    },
+    notAfterTime () {
+      return this.getCriticalTime(this.notAfter)
     }
   },
   watch: {
@@ -185,34 +198,40 @@ export default {
       handler: 'init'
     },
     panel: {
-      immediate: true,
       handler: 'handelPanelChange'
     }
   },
   methods: {
-    handelPanelChange (panel) {
+    handelPanelChange (panel, oldPanel) {
+      this.$parent.$emit('panel-change', panel, oldPanel)
       if (panel === 'YEAR') {
         this.firstYear = Math.floor(this.calendarYear / 10) * 10
       } else if (panel === 'TIME') {
         this.$nextTick(() => {
-          [...this.$el.querySelectorAll('.mx-panel-time .mx-time-list')].forEach(el => {
+          const list = this.$el.querySelectorAll('.mx-panel-time .mx-time-list')
+          for (let i = 0, len = list.length; i < len; i++) {
+            const el = list[i]
             scrollIntoView(el, el.querySelector('.actived'))
-          })
+          }
         })
       }
     },
-    init () {
-      const type = this.type
-      if (type === 'month') {
-        this.panel = 'MONTH'
-      } else if (type === 'year') {
-        this.panel = 'YEAR'
-      } else if (type === 'time') {
-        this.panel = 'TIME'
-      } else if (type === 'week') {
-        this.panel = 'WEEK'
+    init (val) {
+      if (val) {
+        const type = this.type
+        if (type === 'month') {
+          this.showPanelMonth()
+        } else if (type === 'year') {
+          this.showPanelYear()
+        } else if (type === 'time') {
+          this.showPanelTime()
+        } else if (type === 'week') {
+          this.showPanelWeek()
+        } else {
+          this.showPanelDate()
+        }
       } else {
-        this.panel = 'DATE'
+        this.showPanelNone()
       }
       this.updateNow(this.value)
     },
@@ -224,15 +243,52 @@ export default {
         this.now = value ? new Date(value) : new Date()
       }
     },
-    isDisabledTime (date, startAt, endAt) {
+    getCriticalTime (value) {
+      if (!value) {
+        return null
+      }
+      const date = new Date(value)
+      if (this.type === 'year') {
+        return new Date(date.getFullYear(), 0).getTime()
+      } else if (this.type === 'month') {
+        return new Date(date.getFullYear(), date.getMonth()).getTime()
+      } else if (this.type === 'date') {
+        return date.setHours(0, 0, 0, 0)
+      }
+      return date.getTime()
+    },
+    inBefore (time, startAt) {
+      startAt = startAt || this.startAt
+      return (this.notBeforeTime && time < this.notBeforeTime) ||
+        (startAt && time < this.getCriticalTime(startAt))
+    },
+    inAfter (time, endAt) {
+      endAt = endAt || this.endAt
+      return (this.notAfterTime && time > this.notAfterTime) ||
+        (endAt && time > this.getCriticalTime(endAt))
+    },
+    inDisabledDays (time) {
+      if (Array.isArray(this.disabledDays)) {
+        return this.disabledDays.some(v => this.getCriticalTime(v) === time)
+      } else if (typeof this.disabledDays === 'function') {
+        return this.disabledDays(new Date(time))
+      }
+      return false
+    },
+    isDisabledYear (year) {
+      const time = new Date(year, 0).getTime()
+      const maxTime = new Date(year + 1, 0).getTime() - 1
+      return this.inBefore(maxTime) || this.inAfter(time) || (this.type === 'year' && this.inDisabledDays(time))
+    },
+    isDisabledMonth (month) {
+      const time = new Date(this.calendarYear, month).getTime()
+      const maxTime = new Date(this.calendarYear, month + 1).getTime() - 1
+      return this.inBefore(maxTime) || this.inAfter(time) || (this.type === 'month' && this.inDisabledDays(time))
+    },
+    isDisabledDate (date) {
       const time = new Date(date).getTime()
-      const notBefore = this.notBefore && (time < new Date(this.notBefore))
-      const notAfter = this.notAfter && (time > new Date(this.notAfter))
-      startAt = startAt === undefined ? this.startAt : startAt
-      startAt = startAt && (time < new Date(startAt))
-      endAt = endAt === undefined ? this.endAt : endAt
-      endAt = endAt && (time > new Date(endAt))
-      return notBefore || notAfter || startAt || endAt
+      const maxTime = new Date(date).setHours(23, 59, 59, 999)
+      return this.inBefore(maxTime) || this.inAfter(time) || this.inDisabledDays(time)
     },
     isDisabledDate (date, startAt, endAt) {
       const time = new Date(date).getTime()
@@ -258,19 +314,15 @@ export default {
       }
       let disabledDays = false
       if (Array.isArray(this.disabledDays)) {
-        disabledDays = this.disabledDays.some(v => new Date(v).setHours(0, 0, 0, 0) === time)
+        return this.disabledDays.some(v => this.getCriticalTime(v) === time)
       } else if (typeof this.disabledDays === 'function') {
-        disabledDays = this.disabledDays(new Date(date))
+        return this.disabledDays(new Date(time))
       }
-      return notBefore || notAfter || disabledDays || startAt || endAt
+      return false
     },
-    isDisabledYear (year) {
-      const date = new Date(year, this.calendarMonth)
-      return this.isDisabledDate(date)
-    },
-    isDisabledMonth (month) {
-      const date = new Date(this.calendarYear, month)
-      return this.isDisabledDate(date)
+    isDisabledTime (date, startAt, endAt) {
+      const time = new Date(date).getTime()
+      return this.inBefore(time, startAt) || this.inAfter(time, endAt) || this.inDisabledDays(time)
     },
     selectDate (date) {
       if (this.type === 'datetime') {
@@ -291,8 +343,8 @@ export default {
             time = new Date(this.startAt)
           }
         }
-        this.$emit('select-time', time)
-        this.panel = 'TIME'
+        this.selectTime(time)
+        this.showPanelTime()
         return
       } else if (this.type === 'week') {
         const startDate = this.getWeekStartDate(date)
@@ -326,7 +378,10 @@ export default {
       this.showPanelDate()
     },
     selectTime (time) {
-      this.$emit('select-time', time)
+      this.$emit('select-time', time, false)
+    },
+    pickTime (time) {
+      this.$emit('select-time', time, true)
     },
     changeCalendarYear (year) {
       this.now = new Date(year, this.calendarMonth)
@@ -379,8 +434,17 @@ export default {
     changePanelYears (flag) {
       this.firstYear = this.firstYear + flag * 10
     },
+    showPanelNone () {
+      this.panel = 'NONE'
+    },
+    showPanelTime () {
+      this.panel = 'TIME'
+    },
     showPanelDate () {
       this.panel = 'DATE'
+    },
+    showPanelWeek () {
+      this.panel = 'WEEK'
     },
     showPanelYear () {
       this.panel = 'YEAR'
