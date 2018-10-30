@@ -81,6 +81,8 @@ export default {
 | disabled            | Boolean       | false       | Disable the component                               |
 | placeholder         | String        |             | input placeholder text                              |
 | width               | String/Number | 210         | input size                                          |
+| append-to-body      | Boolean       | false       | append the popup to body                            |
+| popupStyle          | Object        |             | popup style(override the top, left style)           |
 | not-before          | String/Date   | ''          | Disable all dates before new Date(not-before)       |
 | not-after           | String/Date   | ''          | Disable all dates after new Date(not-after)         |
 | disabled-days       | Array/function| []          | Disable Days                                        |
@@ -153,8 +155,15 @@ export default {
 |-----------------|------------------------------|------------------------|
 | change          | When the value change        | the currentValue       |
 | input           | When the value change        | the currentValue       |
-| confirm         | When user click 'OK' button  | the currentValue       |
+| confirm         | When click 'OK' button       | the currentValue       |
+| clear           | When click 'clear' button    |                        |
 | input-error     | When user type a invalid Date| the input text         |
+| panel-change    | When change the panel        | panel, oldPanel      |
+
+#### panel value
+`['NONE', 'DATE', 'YEAR', 'MONTH', 'TIME']`
+
+
 
 ### Slots
 
