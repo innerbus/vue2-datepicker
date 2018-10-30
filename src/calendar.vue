@@ -1,12 +1,12 @@
 <template>
-  <div class="mx-calendar">
+  <div :class="['mx-calendar', 'mx-calendar-' + type]">
     <div class="mx-calendar-header">
       <a
         v-show="panel !== 'TIME'"
         class="mx-icon-last-year"
         @click="handleIconYear(-1)">&laquo;</a>
       <a
-        v-show="panel === 'DATE'"
+        v-show="panel === 'DATE' || panel === 'WEEK'"
         class="mx-icon-last-month"
         @click="handleIconMonth(-1)">&lsaquo;</a>
       <a
@@ -14,15 +14,15 @@
         class="mx-icon-next-year"
         @click="handleIconYear(1)">&raquo;</a>
       <a
-        v-show="panel === 'DATE'"
+        v-show="panel === 'DATE' || panel === 'WEEK'"
         class="mx-icon-next-month"
         @click="handleIconMonth(1)">&rsaquo;</a>
       <a
-        v-show="panel === 'DATE'"
+        v-show="panel === 'DATE' || panel === 'WEEK'"
         class="mx-current-month"
         @click="handleBtnMonth">{{months[calendarMonth]}}</a>
       <a
-        v-show="panel === 'DATE' || panel === 'MONTH'"
+        v-show="panel === 'DATE' || panel === 'WEEK' || panel === 'MONTH'"
         class="mx-current-year"
         @click="handleBtnYear">{{calendarYear}}</a>
       <a
@@ -35,7 +35,7 @@
     </div>
     <div class="mx-calendar-content">
       <panel-date
-        v-show="panel === 'DATE'"
+        v-show="panel === 'DATE' || panel === 'WEEK'"
         :value="value"
         :date-format="dateFormat"
         :calendar-month="calendarMonth"
@@ -182,9 +182,24 @@ export default {
       return this.t('months')
     },
     notBeforeTime () {
+      if (this.type === 'week') {
+        // If type is week, need to add just notBefore & notAfter out of the week range
+        if (this.notBefore) {
+          let notBefore = this.getWeekStartDate(this.notBefore)
+          return this.getCriticalTime(notBefore)
+        }
+      }
       return this.getCriticalTime(this.notBefore)
     },
     notAfterTime () {
+      if (this.type === 'week') {
+        // If type is week, need to add just notBefore & notAfter out of the week range
+        if (this.notAfter) {
+          let notAfter = this.getWeekStartDate(this.notAfter)
+          notAfter.setDate(notAfter.getDate() + 6)
+          return this.getCriticalTime(notAfter)
+        }
+      }
       return this.getCriticalTime(this.notAfter)
     }
   },
@@ -225,6 +240,8 @@ export default {
           this.showPanelYear()
         } else if (type === 'time') {
           this.showPanelTime()
+        } else if (type === 'week') {
+          this.showPanelWeek()
         } else {
           this.showPanelDate()
         }
@@ -235,7 +252,11 @@ export default {
     },
     // 根据value更新日历
     updateNow (value) {
-      this.now = value ? new Date(value) : new Date()
+      if (this.type === 'week') {
+        this.now = this.startAt ? this.startAt : new Date()
+      } else {
+        this.now = value ? new Date(value) : new Date()
+      }
     },
     getCriticalTime (value) {
       if (!value) {
@@ -252,12 +273,12 @@ export default {
       return date.getTime()
     },
     inBefore (time, startAt) {
-      startAt = startAt || this.startAt
+      startAt = this.type === 'week' ? undefined : startAt || this.startAt
       return (this.notBeforeTime && time < this.notBeforeTime) ||
         (startAt && time < this.getCriticalTime(startAt))
     },
     inAfter (time, endAt) {
-      endAt = endAt || this.endAt
+      endAt = this.type === 'week' ? undefined : endAt || this.endAt
       return (this.notAfterTime && time > this.notAfterTime) ||
         (endAt && time > this.getCriticalTime(endAt))
     },
@@ -310,8 +331,22 @@ export default {
         this.selectTime(time)
         this.showPanelTime()
         return
+      } else if (this.type === 'week') {
+        const startDate = this.getWeekStartDate(date)
+        const endDate = new Date(startDate)
+        endDate.setDate(startDate.getDate() + 6)
+
+        this.$emit('select-week', [startDate, endDate])
+        return
       }
       this.$emit('select-date', date)
+    },
+    getWeekStartDate (date) {
+      const startDate = new Date(date)
+      // First day of the week: JS: 0-6 (Sun - Sat), DatePicker: 1-7 (Mon-Sun)
+      startDate.setHours(0, 0, 0, 0)
+      startDate.setDate(startDate.getDate() - startDate.getDay() + (this.firstDayOfWeek < 7 ? this.firstDayOfWeek : this.firstDayOfWeek - 7))
+      return startDate
     },
     selectYear (year) {
       this.changeCalendarYear(year)
@@ -392,6 +427,9 @@ export default {
     },
     showPanelDate () {
       this.panel = 'DATE'
+    },
+    showPanelWeek () {
+      this.panel = 'WEEK'
     },
     showPanelYear () {
       this.panel = 'YEAR'

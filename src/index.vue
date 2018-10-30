@@ -61,7 +61,17 @@
         </div>
       </slot>
       <calendar-panel
-        v-if="!range"
+        v-if="innerType === 'week'"
+        v-bind="$attrs"
+        :type="innerType"
+        :date-format="innerDateFormat"
+        :value="null"
+        :start-at="currentValue[0]"
+        :end-at="currentValue[1]"
+        :visible="popupVisible"
+        @select-week="selectWeek"></calendar-panel>
+      <calendar-panel
+        v-else-if="!range"
         v-bind="$attrs"
         :type="innerType"
         :date-format="innerDateFormat"
@@ -196,7 +206,7 @@ export default {
   },
   data () {
     return {
-      currentValue: this.range ? [null, null] : null,
+      currentValue: this.range || this.type === 'week' ? [null, null] : null,
       userInput: null,
       popupVisible: false,
       position: {}
@@ -232,7 +242,7 @@ export default {
       if (this.userInput !== null) {
         return this.userInput
       }
-      if (!this.range) {
+      if (!this.range && this.type !== 'week') {
         return isValidDate(this.value) ? this.stringify(this.value) : ''
       }
       return isValidRange(this.value)
@@ -375,7 +385,7 @@ export default {
       return true
     },
     handleValueChange (value) {
-      if (!this.range) {
+      if (!this.range && this.type !== 'week') {
         this.currentValue = isValidDate(value) ? new Date(value) : null
       } else {
         this.currentValue = isValidRange(value) ? [new Date(value[0]), new Date(value[1])] : [null, null]
@@ -383,6 +393,11 @@ export default {
     },
     selectDate (date) {
       this.currentValue = date
+      this.updateDate() && this.closePopup()
+    },
+    selectWeek (dates) {
+      this.$set(this.currentValue, 0, dates[0])
+      this.$set(this.currentValue, 1, dates[1])
       this.updateDate() && this.closePopup()
     },
     selectStartDate (date) {
