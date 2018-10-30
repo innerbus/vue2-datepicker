@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-calendar">
+  <div :class="['mx-calendar', 'mx-calendar-' + type]">
     <div class="mx-calendar-header">
       <a
         v-show="panel !== 'TIME'"
@@ -182,9 +182,24 @@ export default {
       return this.t('months')
     },
     notBeforeTime () {
+      if (this.type === 'week') {
+        // If type is week, need to add just notBefore & notAfter out of the week range
+        if (this.notBefore) {
+          let notBefore = this.getWeekStartDate(this.notBefore)
+          return this.getCriticalTime(notBefore)
+        }
+      }
       return this.getCriticalTime(this.notBefore)
     },
     notAfterTime () {
+      if (this.type === 'week') {
+        // If type is week, need to add just notBefore & notAfter out of the week range
+        if (this.notAfter) {
+          let notAfter = this.getWeekStartDate(this.notAfter)
+          notAfter.setDate(notAfter.getDate() + 6)
+          return this.getCriticalTime(notAfter)
+        }
+      }
       return this.getCriticalTime(this.notAfter)
     }
   },
@@ -258,12 +273,12 @@ export default {
       return date.getTime()
     },
     inBefore (time, startAt) {
-      startAt = startAt || this.startAt
+      startAt = this.type === 'week' ? undefined : startAt || this.startAt
       return (this.notBeforeTime && time < this.notBeforeTime) ||
         (startAt && time < this.getCriticalTime(startAt))
     },
     inAfter (time, endAt) {
-      endAt = endAt || this.endAt
+      endAt = this.type === 'week' ? undefined : endAt || this.endAt
       return (this.notAfterTime && time > this.notAfterTime) ||
         (endAt && time > this.getCriticalTime(endAt))
     },
@@ -289,36 +304,6 @@ export default {
       const time = new Date(date).getTime()
       const maxTime = new Date(date).setHours(23, 59, 59, 999)
       return this.inBefore(maxTime) || this.inAfter(time) || this.inDisabledDays(time)
-    },
-    isDisabledDate (date, startAt, endAt) {
-      const time = new Date(date).getTime()
-      let notBefore = this.notBefore && (time < new Date(this.notBefore).setHours(0, 0, 0, 0))
-      let notAfter = this.notAfter && (time > new Date(this.notAfter).setHours(0, 0, 0, 0))
-      if (this.type === 'week') {
-        // If type is week, need to add just notBefore & notAfter out of the week range
-        if (this.notBefore) {
-          notBefore = this.getWeekStartDate(this.notBefore)
-          notBefore.setDate(notBefore.getDate())
-          notBefore = time < notBefore.getTime()
-        }
-        if (this.notAfter) {
-          notAfter = this.getWeekStartDate(this.notAfter)
-          notAfter.setDate(notAfter.getDate() + 6)
-          notAfter = time > notAfter.getTime()
-        }
-      } else {
-        startAt = startAt === undefined ? this.startAt : startAt
-        startAt = startAt && (time < new Date(startAt).setHours(0, 0, 0, 0))
-        endAt = endAt === undefined ? this.endAt : endAt
-        endAt = endAt && (time > new Date(endAt).setHours(0, 0, 0, 0))
-      }
-      let disabledDays = false
-      if (Array.isArray(this.disabledDays)) {
-        return this.disabledDays.some(v => this.getCriticalTime(v) === time)
-      } else if (typeof this.disabledDays === 'function') {
-        return this.disabledDays(new Date(time))
-      }
-      return false
     },
     isDisabledTime (date, startAt, endAt) {
       const time = new Date(date).getTime()
@@ -348,7 +333,7 @@ export default {
         return
       } else if (this.type === 'week') {
         const startDate = this.getWeekStartDate(date)
-        const endDate = new Date(date)
+        const endDate = new Date(startDate)
         endDate.setDate(startDate.getDate() + 6)
 
         this.$emit('select-week', [startDate, endDate])
