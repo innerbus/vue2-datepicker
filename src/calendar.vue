@@ -1,6 +1,6 @@
 <template>
   <div :class="['mx-calendar', 'mx-calendar-' + type]">
-    <div class="mx-calendar-header">
+    <div class="mx-calendar-header tan-test">
       <a
         v-show="panel !== 'TIME'"
         class="mx-icon-last-year"
