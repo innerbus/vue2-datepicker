@@ -3,7 +3,7 @@
     <div class="mx-calendar-header">
       <a
         v-show="panel !== 'TIME'"
-        class="mx-icon-last-year"
+        class="mx-icon-last-year tan-test"
         @click="handleIconYear(-1)">&laquo;</a>
       <a
         v-show="panel === 'DATE'"
