@@ -24,7 +24,7 @@
       <a
         v-show="panel === 'DATE' || panel === 'WEEK' || panel === 'MONTH'"
         class="mx-current-year"
-        @click="handleBtnYear">{{calendarYear}}</a>
+        @click="handleBtnYear">{{calendarYearTitle}}</a>
       <a
         v-show="panel === 'YEAR'"
         class="mx-current-year">{{yearHeader}}</a>
@@ -155,6 +155,12 @@ export default {
     }
   },
   computed: {
+    calendarYearTitle() {
+      let firstYearDate = new Date();
+      firstYearDate.setFullYear(+this.calendarYear)
+      const yearFormat = this.t('yearFormat') || 'yyyy';
+      return moment(firstYearDate).format(yearFormat)
+    },
     now: {
       get () {
         return new Date(this.calendarYear, this.calendarMonth).getTime()
