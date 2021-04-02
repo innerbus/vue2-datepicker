@@ -1,3 +1,6 @@
+import moment from 'moment'
+import Languages from '@/locale/languages'
+
 export default {
   name: 'panelYear',
   props: {
@@ -23,8 +26,15 @@ export default {
     // 当前年代
     const firstYear = Math.floor(this.firstYear / 10) * 10
     const currentYear = this.value && new Date(this.value).getFullYear()
+    const yearFormat = this.t('yearFormat') || 'yyyy';
     const years = Array.apply(null, { length: 10 }).map((_, i) => {
-      const year = firstYear + i
+      let year = firstYear + i
+
+      let yearDate = new Date();
+      yearDate.setFullYear(year)
+
+      year = moment(yearDate).format(yearFormat);
+
       return <span
         class={{
           'cell': true,
