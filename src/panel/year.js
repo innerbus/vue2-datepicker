@@ -34,7 +34,7 @@ export default {
       let yearDate = new Date();
       yearDate.setFullYear(year)
 
-      year = moment(yearDate).format(yearFormat);
+      const yearTitle = moment(yearDate).format(yearFormat);
 
       return <span
         class={{
@@ -43,7 +43,7 @@ export default {
           'disabled': this.isDisabled(year)
         }}
         onClick={this.selectYear.bind(this, year)}
-      >{year}</span>
+      >{yearTitle}</span>
     })
     return <div class="mx-panel mx-panel-year">{years}</div>
   }
