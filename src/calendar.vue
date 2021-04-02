@@ -78,6 +78,7 @@ import PanelDate from '@/panel/date'
 import PanelYear from '@/panel/year'
 import PanelMonth from '@/panel/month'
 import PanelTime from '@/panel/time'
+import moment from 'moment'
 
 export default {
   name: 'CalendarPanel',
