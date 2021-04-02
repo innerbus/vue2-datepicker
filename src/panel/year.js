@@ -1,8 +1,9 @@
 import moment from 'moment'
-import Languages from '@/locale/languages'
+import locale from '@/mixins/locale'
 
 export default {
   name: 'panelYear',
+  mixins: [locale],
   props: {
     value: null,
     firstYear: Number,
