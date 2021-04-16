@@ -7,21 +7,5 @@
       }
     ],
     "stage-3"
-  ],
-  "plugins": [
-    "transform-vue-jsx",
-    "jsx-v-model"
-  ],
-  "env": {
-    "test": {
-      "presets": [
-        ["env", { "target": { "node": "current" }}],
-        "stage-3"
-      ],
-      "plugins": [
-        "transform-vue-jsx",
-        "jsx-v-model"
-      ]
-    }
-  }
+  ]
 }
