@@ -25,13 +25,13 @@
         </tbody>
       </table>
       <div class="mx-calendar-year" v-show="currentPanel === 'years'">
-        <a v-for="year in years" 
-          @click="selectYear(year)" 
-          :class="{'current': currentYear === year, 'disabled': isDisabledYear(year)}">{{year}}</a>
+        <a v-for="year in years"
+          @click="selectYear(year)"
+          :class="{'current': currentYear === year, 'disabled': isDisabledYear(year)}">{{formatYear(year)}}</a>
       </div>
       <div class="mx-calendar-month" v-show="currentPanel === 'months'">
-        <a v-for="(month, index) in months" 
-        @click="selectMonth(index)" 
+        <a v-for="(month, index) in months"
+        @click="selectMonth(index)"
         :class="{'current': currentMonth === index, 'disabled': isDisabledMonth(index)}">{{month}}</a>
       </div>
       <div class="mx-calendar-time"
@@ -46,9 +46,9 @@
             </li>
           </ul>
         </div>
-        <div v-else class="mx-time-list-wrapper" 
+        <div v-else class="mx-time-list-wrapper"
           :style="{width: 100 / times.length + '%' }"
-          v-for="(time, index) in times" 
+          v-for="(time, index) in times"
           :key="index">
           <ul class="mx-time-list">
             <li class="mx-time-item"
@@ -65,6 +65,7 @@
 </template>
 
 <script>
+  import moment from 'moment'
 const getTimeArray = function (len, step = 1) {
   const length = parseInt(len / step)
   return Array.apply(null, { length }).map((v, i) => i * step)
@@ -156,7 +157,7 @@ export default {
             value,
             label: formatTime(value, this.timeType)
           })
-        }        
+        }
       }
 
       return result
@@ -199,6 +200,15 @@ export default {
     }
   },
   methods: {
+    formatYear(year) {
+      const translation = this.$parent.translation
+      if (translation.yearFormat) {
+        const date = new Date()
+        date.setFullYear(+year);
+        return moment(date).format(translation.yearFormat)
+      }
+      return year
+    },
     updateNow() {
       this.now = this.value ? new Date(this.value) : new Date()
     },
@@ -262,7 +272,7 @@ export default {
         this.$parent.notBefore !== '' && now < new Date(this.$parent.notBefore).setHours(0, 0, 0, 0) ||
         this.$parent.notAfter !== '' && now > new Date(this.$parent.notAfter).setHours(0, 0, 0, 0) ||
         this.startAt && now < new Date(this.startAt).setHours(0, 0, 0, 0) ||
-        this.endAt && now > new Date(this.endAt).setHours(0, 0, 0, 0)        
+        this.endAt && now > new Date(this.endAt).setHours(0, 0, 0, 0)
       ) {
         return true
       }
@@ -295,7 +305,7 @@ export default {
           classes.push('inrange')
         } else if (endTime && cellTime >= curTime) {
           classes.push('inrange')
-        }       
+        }
       }
       return classes.join(' ')
     },
@@ -437,14 +447,14 @@ export default {
     isDisabledYear (year) {
       if (this.value) {
         const now = new Date(this.now).setFullYear(year)
-        return this.isDisabled(now) 
+        return this.isDisabled(now)
       }
       return false
     },
     isDisabledMonth (month) {
       if (this.value) {
         const now = new Date(this.now).setMonth(month)
-        return this.isDisabled(now)  
+        return this.isDisabled(now)
       }
       return false
     },
@@ -470,7 +480,7 @@ export default {
       this.now = now
       if (this.value) {
         this.$emit('input', now)
-        this.$emit('select', true)       
+        this.$emit('select', true)
       }
       this.currentPanel = 'date'
     },
@@ -500,7 +510,7 @@ export default {
       date.setHours(value.hours, value.minutes, 0)
       this.now = date
       this.$emit('input', date)
-      this.$emit('select')      
+      this.$emit('select')
     }
   }
 }
