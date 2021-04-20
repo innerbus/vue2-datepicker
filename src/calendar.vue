@@ -183,12 +183,12 @@ export default {
       return this.value && formatDate(this.value, this.dateFormat)
     },
     yearHeader () {
-      let firstYearDate = new Date();
+      // let firstYearDate = new Date();
       let lastYearDate = new Date();
-      firstYearDate.setFullYear(+this.firstYear)
+      // firstYearDate.setFullYear(+this.firstYear)
       lastYearDate.setFullYear(+this.firstYear + 10)
       const yearFormat = this.t('yearFormat') || 'yyyy';
-      return moment(firstYearDate).format(yearFormat) + ' ~ ' + moment(lastYearDate).format(yearFormat)
+      return this.firstYear + ' ~ ' + moment(lastYearDate).format(yearFormat)
     },
     months () {
       return this.t('months')
