@@ -74,7 +74,7 @@ export default {
     value: null,
     format: {
       type: String,
-      default: 'yyyy-MM-dd'
+      default: 'yyyy.MM.dd'
     },
     customFormatter: {
       type: Function
@@ -302,7 +302,7 @@ export default {
         this.togglePopup()
       }
     },
-    parseDate (str, fmt = 'yyyy-MM-dd') {
+    parseDate (str, fmt = 'yyyy.MM.dd') {
       let isValid = true
       const obj = { y: 0, M: 1, d: 0, H: 0, h: 0, m: 0, s: 0 }
       fmt.replace(/([^yMdHhms]*?)(([yMdHhms])\3*)([^yMdHhms]*?)/g, function (m, $1, $2, $3, $4, idx, old) {
@@ -324,7 +324,7 @@ export default {
       obj.M--
       return new Date(obj.y, obj.M, obj.d, obj.H || obj.h, obj.m, obj.s)
     },
-    formatDate (date, fmt = 'yyyy-MM-dd HH:mm:ss') {
+    formatDate (date, fmt = 'yyyy.MM.dd HH:mm:ss') {
       const hour = date.getHours()
       const map = {
         'M+': date.getMonth() + 1, // 月份

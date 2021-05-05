@@ -11,11 +11,11 @@
 
       <template v-if="langText === 'ko'">
         <a @click="showYears">{{currentYear}}</a>
-        <a @click="showMonths">{{months[currentMonth]}}</a>
+        <a v-if="currentPanel !== 'months'" @click="showMonths">{{months[currentMonth]}}</a>
       </template>
 
       <template v-else>
-        <a @click="showMonths">{{months[currentMonth]}}</a>
+        <a v-if="currentPanel !== 'months'" @click="showMonths">{{months[currentMonth]}}</a>
         <a @click="showYears">{{currentYear}}</a>
       </template>
     </div>
