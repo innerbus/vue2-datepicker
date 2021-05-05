@@ -232,6 +232,9 @@ export default {
       }
       return Languages[this.lang] || Languages.en
     },
+    localText () {
+      return this.lang || 'en'
+    },
     innerPlaceholder () {
       if (typeof this.placeholder === 'string') {
         return this.placeholder

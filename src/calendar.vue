@@ -17,14 +17,32 @@
         v-show="panel === 'DATE' || panel === 'WEEK'"
         class="mx-icon-next-month"
         @click="handleIconMonth(1)">&rsaquo;</a>
-      <a
-        v-show="panel === 'DATE' || panel === 'WEEK'"
-        class="mx-current-month"
-        @click="handleBtnMonth">{{months[calendarMonth]}}</a>
-      <a
-        v-show="panel === 'DATE' || panel === 'WEEK' || panel === 'MONTH'"
-        class="mx-current-year"
-        @click="handleBtnYear">{{calendarYearTitle}}</a>
+
+
+      <template v-if="localText === 'ko'">
+        <a
+                v-show="panel === 'DATE' || panel === 'WEEK' || panel === 'MONTH'"
+                class="mx-current-year"
+                @click="handleBtnYear">{{calendarYearTitle}}</a>
+
+        <a
+                v-show="panel === 'DATE' || panel === 'WEEK'"
+                class="mx-current-month"
+                @click="handleBtnMonth">{{months[calendarMonth]}}</a>
+
+      </template>
+      <template v-else>
+        <a
+                v-show="panel === 'DATE' || panel === 'WEEK'"
+                class="mx-current-month"
+                @click="handleBtnMonth">{{months[calendarMonth]}}</a>
+        <a
+                v-show="panel === 'DATE' || panel === 'WEEK' || panel === 'MONTH'"
+                class="mx-current-year"
+                @click="handleBtnYear">{{calendarYearTitle}}</a>
+      </template>
+
+
       <a
         v-show="panel === 'YEAR'"
         class="mx-current-year">{{yearHeader}}</a>
@@ -155,6 +173,9 @@ export default {
     }
   },
   computed: {
+    localText() {
+      return this.$parent.localText
+    },
     calendarYearTitle() {
       let firstYearDate = new Date();
       firstYearDate.setFullYear(+this.calendarYear)
