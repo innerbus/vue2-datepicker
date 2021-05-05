@@ -195,6 +195,9 @@ export default {
       }
       return Languages[this.lang] || Languages['en']
     },
+    langText () {
+      return this.lang || 'en'
+    },
     innerPlaceholder () {
       return (
         this.placeholder ||

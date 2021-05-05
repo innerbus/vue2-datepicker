@@ -1,15 +1,23 @@
 <template>
   <div class="mx-calendar">
-    <div class="mx-calendar-header" v-if="currentPanel === 'time'">
+    <div :class="`mx-calendar-header currentPanel-${currentPanel}`" v-if="currentPanel === 'time'">
       <a @click="currentPanel = 'date'">{{now.toLocaleDateString()}}</a>
     </div>
-    <div class="mx-calendar-header" v-else>
+    <div :class="`mx-calendar-header currentPanel-${currentPanel}`" v-else>
       <a class="mx-calendar__prev-icon" @click="changeYear(-1)">&laquo;</a>
       <a v-show="currentPanel === 'date'" class="mx-calendar__prev-icon" @click="changeMonth(-1)">&lsaquo;</a>
       <a class="mx-calendar__next-icon" @click="changeYear(1)">&raquo;</a>
       <a v-show="currentPanel === 'date'" class="mx-calendar__next-icon" @click="changeMonth(1)">&rsaquo;</a>
-      <a @click="showMonths">{{months[currentMonth]}}</a>
-      <a @click="showYears">{{currentYear}}</a>
+
+      <template v-if="langText === 'ko'">
+        <a @click="showYears">{{currentYear}}</a>
+        <a @click="showMonths">{{months[currentMonth]}}</a>
+      </template>
+
+      <template v-else>
+        <a @click="showMonths">{{months[currentMonth]}}</a>
+        <a @click="showYears">{{currentYear}}</a>
+      </template>
     </div>
     <div class="mx-calendar-content">
       <table class="mx-calendar-table" v-show="currentPanel === 'date'">
@@ -31,8 +39,8 @@
       </div>
       <div class="mx-calendar-month" v-show="currentPanel === 'months'">
         <a v-for="(month, index) in months"
-        @click="selectMonth(index)"
-        :class="{'current': currentMonth === index, 'disabled': isDisabledMonth(index)}">{{month}}</a>
+          @click="selectMonth(index)"
+          :class="{'current': currentMonth === index, 'disabled': isDisabledMonth(index)}">{{month}}</a>
       </div>
       <div class="mx-calendar-time"
         v-show="currentPanel === 'time'" >
@@ -56,7 +64,7 @@
               :class="getTimeClasses(num, index)"
               :key="num"
               @click="selectTime(num, index)"
-              >{{num | timeText}}</li>
+            >{{num | timeText}}</li>
           </ul>
         </div>
       </div>
@@ -65,26 +73,26 @@
 </template>
 
 <script>
-  import moment from 'moment'
+import moment from 'moment'
 const getTimeArray = function (len, step = 1) {
   const length = parseInt(len / step)
   return Array.apply(null, { length }).map((v, i) => i * step)
 }
 
-const parseTime = function(time) {
-  const values = (time || '').split(':');
+const parseTime = function (time) {
+  const values = (time || '').split(':')
   if (values.length >= 2) {
-    const hours = parseInt(values[0], 10);
-    const minutes = parseInt(values[1], 10);
+    const hours = parseInt(values[0], 10)
+    const minutes = parseInt(values[1], 10)
     return {
       hours,
       minutes
     }
   }
-  return null;
+  return null
 }
 
-const formatTime = function(time, type="24") {
+const formatTime = function (time, type = '24') {
   let hours = time.hours
   hours = (type === '24') ? hours : (hours % 12 || 12)
   hours = hours < 10 ? '0' + hours : hours
@@ -103,7 +111,7 @@ export default {
     value: null,
     show: Boolean
   },
-  data() {
+  data () {
     const translation = this.$parent.translation
     const minuteStep = this.$parent.minuteStep
     const times = [getTimeArray(24, 1), getTimeArray(60, minuteStep || 1)]
@@ -121,10 +129,13 @@ export default {
   },
   computed: {
     // 日历显示头
-    days() {
+    days () {
       const days = this.$parent.translation.days
       const firstday = +this.$parent.firstDayOfWeek
       return days.concat(days).slice(firstday, firstday + 7)
+    },
+    langText () {
+      return this.$parent.langText
     },
     timeType () {
       return /h+/.test(this.$parent.format) ? '12' : '24'
@@ -142,13 +153,13 @@ export default {
       const end = parseTime(options.end)
       const step = parseTime(options.step)
       if (start && end && step) {
-        const startMinutes = start.minutes + start.hours * 60;
-        const endMinutes = end.minutes + end.hours * 60;
+        const startMinutes = start.minutes + start.hours * 60
+        const endMinutes = end.minutes + end.hours * 60
         const stepMinutes = step.minutes + step.hours * 60
         const len = Math.floor((endMinutes - startMinutes) / stepMinutes)
         for (let i = 0; i <= len; i++) {
           let timeMinutes = startMinutes + i * stepMinutes
-          let hours = Math.floor(timeMinutes/60)
+          let hours = Math.floor(timeMinutes / 60)
           let minutes = timeMinutes % 60
           let value = {
             hours, minutes
@@ -162,27 +173,27 @@ export default {
 
       return result
     },
-    currentYear() {
-      return this.now.getFullYear()
+    currentYear () {
+      return this.formatYear(this.now.getFullYear());
     },
-    currentMonth() {
+    currentMonth () {
       return this.now.getMonth()
     },
-    curHour() {
+    curHour () {
       return this.now.getHours()
     },
-    curMinute() {
+    curMinute () {
       return this.now.getMinutes()
     },
-    curSecond() {
+    curSecond () {
       return this.now.getSeconds()
     }
   },
-  created() {
+  created () {
     this.updateCalendar()
   },
   watch: {
-    show(val) {
+    show (val) {
       if (val) {
         this.currentPanel = 'date'
         this.updateNow()
@@ -195,26 +206,26 @@ export default {
     now: 'updateCalendar'
   },
   filters: {
-    timeText(value) {
+    timeText (value) {
       return ('00' + value).slice(String(value).length)
     }
   },
   methods: {
-    formatYear(year) {
+    formatYear (year) {
       const translation = this.$parent.translation
       if (translation.yearFormat) {
         const date = new Date()
-        date.setFullYear(+year);
+        date.setFullYear(+year)
         return moment(date).format(translation.yearFormat)
       }
       return year
     },
-    updateNow() {
+    updateNow () {
       this.now = this.value ? new Date(this.value) : new Date()
     },
     // 更新面板选择时间
-    updateCalendar() {
-      function getCalendar(time, firstday, length, classes) {
+    updateCalendar () {
+      function getCalendar (time, firstday, length, classes) {
         return Array.apply(null, { length }).map((v, i) => {
           // eslint-disable-line
           let day = firstday + i
@@ -278,7 +289,7 @@ export default {
       }
       return false
     },
-    getDateClasses(cell) {
+    getDateClasses (cell) {
       const classes = []
       const cellTime = new Date(cell.date).setHours(0, 0, 0, 0)
       const cellEndTime = new Date(cell.date).setHours(23, 59, 59, 999)
@@ -309,7 +320,7 @@ export default {
       }
       return classes.join(' ')
     },
-    getTimeClasses(value, index) {
+    getTimeClasses (value, index) {
       let curValue
       let cellTime
       const startTime = this.startAt ? new Date(this.startAt) : 0
@@ -355,14 +366,14 @@ export default {
       }
       return classes.join(' ')
     },
-    showMonths() {
+    showMonths () {
       if (this.currentPanel === 'months') {
         this.currentPanel = 'date'
       } else {
         this.currentPanel = 'months'
       }
     },
-    showYears() {
+    showYears () {
       // 当前年代
       if (this.currentPanel === 'years') {
         this.currentPanel = 'date'
@@ -377,7 +388,7 @@ export default {
       }
     },
     // 前进或后退一年
-    changeYear(flag) {
+    changeYear (flag) {
       if (this.currentPanel === 'years') {
         this.years = this.years.map(v => v + flag * 10)
       } else {
@@ -386,12 +397,12 @@ export default {
         this.now = now
       }
     },
-    changeMonth(flag) {
+    changeMonth (flag) {
       const now = new Date(this.now)
       now.setMonth(now.getMonth() + flag, 1)
       this.now = now
     },
-    scrollIntoView(container, selected) {
+    scrollIntoView (container, selected) {
       if (!selected) {
         container.scrollTop = 0
         return
@@ -406,7 +417,7 @@ export default {
         container.scrollTop = bottom - container.clientHeight
       }
     },
-    selectDate(cell) {
+    selectDate (cell) {
       const classes = this.getDateClasses(cell)
       if (classes.indexOf('disabled') !== -1) {
         return
@@ -458,7 +469,7 @@ export default {
       }
       return false
     },
-    selectYear(year) {
+    selectYear (year) {
       if (this.isDisabledYear(year)) {
         return
       }
@@ -471,7 +482,7 @@ export default {
       }
       this.currentPanel = 'months'
     },
-    selectMonth(month) {
+    selectMonth (month) {
       if (this.isDisabledMonth(month)) {
         return
       }
@@ -484,7 +495,7 @@ export default {
       }
       this.currentPanel = 'date'
     },
-    selectTime(value, index) {
+    selectTime (value, index) {
       const classes = this.getTimeClasses(value, index)
       if (classes.indexOf('disabled') !== -1) {
         return
