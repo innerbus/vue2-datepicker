@@ -10,7 +10,7 @@ export default {
     endAt: null,
     dateFormat: {
       type: String,
-      default: 'YYYY-MM-DD'
+      default: 'YYYY.MM.DD'
     },
     calendarMonth: {
       default: new Date().getMonth()
