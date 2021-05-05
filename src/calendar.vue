@@ -1,5 +1,5 @@
 <template>
-  <div :class="['mx-calendar', 'mx-calendar-' + type]">
+  <div :class="['mx-calendar', 'mx-calendar-' + type, 'mx-calendar-panel-' + panel]">
     <div class="mx-calendar-header">
       <a
         v-show="panel !== 'TIME'"
