@@ -10,13 +10,11 @@
       <a v-show="currentPanel === 'date'" class="mx-calendar__next-icon" @click="changeMonth(1)">&rsaquo;</a>
 
       <template v-if="langText === 'ko'">
-        <a @click="showYears">{{currentYear}}</a>
-        <a v-if="currentPanel !== 'months'" @click="showMonths">{{months[currentMonth]}}</a>
+        <a @click="showCustom"><p>{{ currentPanel === 'date' ? currentYear + ' ' + months[currentMonth] : currentYear}}</p></a>
       </template>
 
       <template v-else>
-        <a v-if="currentPanel !== 'months'" @click="showMonths">{{months[currentMonth]}}</a>
-        <a @click="showYears">{{currentYear}}</a>
+        <a @click="showCustom"><p>{{ currentPanel === 'date' ? months[currentMonth] + ' ' + currentYear : currentYear}}</p></a>
       </template>
     </div>
     <div class="mx-calendar-content">
@@ -377,6 +375,22 @@ export default {
       // 当前年代
       if (this.currentPanel === 'years') {
         this.currentPanel = 'date'
+      } else {
+        let firstYear = Math.floor(this.now.getFullYear() / 10) * 10
+        let years = []
+        for (let i = 0; i < 10; i++) {
+          years.push(firstYear + i)
+        }
+        this.years = years
+        this.currentPanel = 'years'
+      }
+    },
+    showCustom() {
+      // 当前年代
+      if (this.currentPanel === 'date') {
+        this.currentPanel = 'months'
+      } else if (this.currentPanel === 'years') {
+        this.currentPanel = 'months'
       } else {
         let firstYear = Math.floor(this.now.getFullYear() / 10) * 10
         let years = []
