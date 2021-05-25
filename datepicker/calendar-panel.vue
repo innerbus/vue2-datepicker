@@ -10,11 +10,11 @@
       <a v-show="currentPanel === 'date'" class="mx-calendar__next-icon" @click="changeMonth(1)">&rsaquo;</a>
 
       <template v-if="langText === 'ko'">
-        <a @click="showCustom"><p>{{ currentPanel === 'date' ? currentYear + ' ' + months[currentMonth] : currentYear}}</p></a>
+        <a @click="showCustom">{{ currentPanel === 'date' ? currentYear + ' ' + months[currentMonth] : currentYear}}</a>
       </template>
 
       <template v-else>
-        <a @click="showCustom"><p>{{ currentPanel === 'date' ? months[currentMonth] + ' ' + currentYear : currentYear}}</p></a>
+        <a @click="showCustom">{{ currentPanel === 'date' ? months[currentMonth] + ' ' + currentYear : currentYear}}</a>
       </template>
     </div>
     <div class="mx-calendar-content">
@@ -122,7 +122,8 @@ export default {
       years: [], // 年代面板
       now: new Date(), // calendar-header 显示的时间, 用于切换日历
       currentPanel: 'date',
-      times: times
+      times: times,
+      firstYear: ''
     }
   },
   computed: {
@@ -172,7 +173,10 @@ export default {
       return result
     },
     currentYear () {
-      return this.formatYear(this.now.getFullYear());
+      if (this.currentPanel === 'years')
+        return this.firstYear + ' ~ ' + this.formatYear(this.years[this.years.length - 1])
+      else
+        return this.formatYear(this.now.getFullYear());
     },
     currentMonth () {
       return this.now.getMonth()
@@ -393,6 +397,7 @@ export default {
         this.currentPanel = 'months'
       } else {
         let firstYear = Math.floor(this.now.getFullYear() / 10) * 10
+        this.firstYear = firstYear
         let years = []
         for (let i = 0; i < 10; i++) {
           years.push(firstYear + i)
@@ -405,6 +410,7 @@ export default {
     changeYear (flag) {
       if (this.currentPanel === 'years') {
         this.years = this.years.map(v => v + flag * 10)
+        this.firstYear = this.years[0]
       } else {
         const now = new Date(this.now)
         now.setFullYear(now.getFullYear() + flag, now.getMonth(), 1)
