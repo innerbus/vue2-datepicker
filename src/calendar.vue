@@ -17,32 +17,26 @@
         v-show="panel === 'DATE' || panel === 'WEEK'"
         class="mx-icon-next-month"
         @click="handleIconMonth(1)">&rsaquo;</a>
-
-
       <template v-if="localText === 'ko'">
         <a
-                v-show="panel === 'DATE' || panel === 'WEEK' || panel === 'MONTH'"
-                class="mx-current-year"
-                @click="handleBtnYear">{{calendarYearTitle}}</a>
-
+            v-if="panel === 'DATE' || panel === 'WEEK'"
+            class="mx-current-month"
+            @click="handleBtnCustom">{{calendarYearTitle + ' ' + months[calendarMonth]}}</a>
         <a
-                v-show="panel === 'DATE' || panel === 'WEEK'"
-                class="mx-current-month"
-                @click="handleBtnMonth">{{months[calendarMonth]}}</a>
-
+            v-else-if="panel === 'MONTH'"
+            class="mx-current-month"
+            @click="handleBtnCustom">{{calendarYearTitle}}</a>
       </template>
       <template v-else>
         <a
-                v-show="panel === 'DATE' || panel === 'WEEK'"
-                class="mx-current-month"
-                @click="handleBtnMonth">{{months[calendarMonth]}}</a>
+            v-if="panel === 'DATE' || panel === 'WEEK'"
+            class="mx-current-month"
+            @click="handleBtnCustom">{{months[calendarMonth] + ' ' + calendarYearTitle}}</a>
         <a
-                v-show="panel === 'DATE' || panel === 'WEEK' || panel === 'MONTH'"
-                class="mx-current-year"
-                @click="handleBtnYear">{{calendarYearTitle}}</a>
+            v-else-if="panel === 'MONTH'"
+            class="mx-current-month"
+            @click="handleBtnCustom">{{calendarYearTitle}}</a>
       </template>
-
-
       <a
         v-show="panel === 'YEAR'"
         class="mx-current-year">{{yearHeader}}</a>
@@ -442,6 +436,13 @@ export default {
     },
     handleBtnMonth () {
       this.showPanelMonth()
+    },
+    handleBtnCustom () {
+      if (this.panel == 'DATE') {
+        this.showPanelMonth()
+      } else if (this.panel == 'MONTH') {
+        this.showPanelYear()
+      }
     },
     handleTimeHeader () {
       if (this.type === 'time') {
